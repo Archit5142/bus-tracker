@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BUS TRACKER</title>
   <style>
     body {
@@ -10,28 +10,40 @@
       font-family: Arial, sans-serif;
       background: linear-gradient(135deg, #2E86C1, #1B4F72);
       color: white;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
+
     h1 {
       text-align: center;
       padding: 15px;
       margin: 0;
+      background: rgba(0, 0, 0, 0.2);
+      font-size: clamp(18px, 5vw, 28px);
     }
-    .login-container, .map-container {
+
+    .login-container,
+    .map-container {
+      flex: 1;
       display: none;
       justify-content: center;
       align-items: center;
       flex-direction: column;
       padding: 20px;
     }
+
     .login-box {
       background: white;
       color: black;
-      padding: 40px;
+      padding: 30px;
       border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-      width: 350px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      max-width: 350px;
       text-align: center;
     }
+
     input {
       width: 100%;
       padding: 12px;
@@ -40,6 +52,7 @@
       border: 1px solid #ccc;
       font-size: 16px;
     }
+
     button {
       width: 100%;
       padding: 12px;
@@ -50,40 +63,64 @@
       border-radius: 8px;
       cursor: pointer;
       margin-top: 10px;
+      transition: background 0.3s ease;
     }
+
     button:hover {
       background: #1B4F72;
     }
+
     #map {
-      height: 70vh;
+      height: 60vh;
       width: 100%;
     }
+
     .controls {
       padding: 15px;
       text-align: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
     }
+
     .controls button {
-      width: auto;
-      margin: 5px;
+      flex: 1 1 auto;
+      min-width: 120px;
+      max-width: 200px;
     }
+
     #address {
       text-align: center;
-      margin-top: 10px;
-      font-size: 18px;
+      margin: 15px 10px;
+      font-size: clamp(14px, 4vw, 18px);
       color: yellow;
+      word-wrap: break-word;
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 600px) {
+      .login-box {
+        padding: 20px;
+      }
+      input, button {
+        font-size: 14px;
+        padding: 10px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>BUS TRACKER</h1>
+  <h1>🚍 BUS TRACKER</h1>
 
   <!-- Login Section -->
   <div class="login-container" id="loginSection" style="display: flex;">
     <div class="login-box">
-      <input type="email" id="email" placeholder="Enter Email" required>
-      <input type="password" id="password" placeholder="Enter Password" required>
+      <h2 style="margin-bottom: 15px;">Login</h2>
+      <input type="email" id="email" placeholder="Enter Email" required />
+      <input type="password" id="password" placeholder="Enter Password" required />
       <button id="loginBtn">Login</button>
-      <button id="signupBtn">Create Account</button>
+      <button id="signupBtn" style="background:#27ae60;">Create Account</button>
     </div>
   </div>
 
@@ -92,23 +129,30 @@
     <div id="map"></div>
     <div class="controls">
       <button id="startTracking">Start Tracking</button>
-      <button id="stopTracking">Stop Tracking</button>
+      <button id="stopTracking" style="background:#e74c3c;">Stop Tracking</button>
     </div>
     <div id="address">Address: Not Available</div>
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import {
+      initializeApp
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
     const firebaseConfig = {
-    apiKey: "AIzaSyAk8hV0jAR3G0tCi1Fhw-I4Ln25yDRiGbg",
-    authDomain: "trackingapparchit.firebaseapp.com",
-    databaseURL: "https://trackingapparchit-default-rtdb.firebaseio.com",
-    projectId: "trackingapparchit",
-    storageBucket: "trackingapparchit.appspot.com",
-    messagingSenderId: "971227243188",
-    appId: "1:971227243188:web:6b104c1dc750e429a4ede1"
+      apiKey: "AIzaSyAk8hV0jAR3G0tCi1Fhw-I4Ln25yDRiGbg",
+      authDomain: "trackingapparchit.firebaseapp.com",
+      databaseURL: "https://trackingapparchit-default-rtdb.firebaseio.com",
+      projectId: "trackingapparchit",
+      storageBucket: "trackingapparchit.appspot.com",
+      messagingSenderId: "971227243188",
+      appId: "1:971227243188:web:6b104c1dc750e429a4ede1"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -131,7 +175,7 @@
       signInWithEmailAndPassword(auth, email, password)
         .then(() => {
           loginSection.style.display = "none";
-          mapSection.style.display = "block";
+          mapSection.style.display = "flex";
         })
         .catch(err => alert(err.message));
     });
@@ -139,7 +183,7 @@
     onAuthStateChanged(auth, user => {
       if (user) {
         loginSection.style.display = "none";
-        mapSection.style.display = "block";
+        mapSection.style.display = "flex";
       } else {
         loginSection.style.display = "flex";
         mapSection.style.display = "none";
@@ -151,7 +195,7 @@
     window.initMap = function () {
       map = new google.maps.Map(document.getElementById("map"), {
         center: { lat: 28.6139, lng: 77.2090 },
-        zoom: 14,
+        zoom: 14
       });
     };
 
@@ -166,21 +210,33 @@
             marker = new google.maps.Marker({
               position: pos,
               map: map,
-              title: "Bus Location",
+              title: "Bus Location"
             });
           } else {
             marker.setPosition(pos);
           }
           map.setCenter(pos);
 
+          // Fixed Address Fetch
           fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=AIzaSyDovBoCBHtf82YJxuvEzXXn2j181ErHSVQ`)
             .then(response => response.json())
             .then(data => {
-              if (data.results[0]) {
-                document.getElementById("address").innerText = "Address: " + data.results[0].formatted_address;
+              if (data.status === "OK" && data.results.length > 0) {
+                document.getElementById("address").innerText =
+                  "Address: " + data.results[0].formatted_address;
+              } else {
+                document.getElementById("address").innerText =
+                  "Address: Not Available (No results)";
               }
+            })
+            .catch(error => {
+              console.error("Geocoding Error:", error);
+              document.getElementById("address").innerText =
+                "Address: Error fetching location";
             });
         });
+      } else {
+        alert("Geolocation not supported by your browser.");
       }
     });
 
