@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BUS TRACKER</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #2E86C1, #1B4F72);
+      color: white;
+    }
+    h1 {
+      text-align: center;
+      padding: 15px;
+      margin: 0;
+    }
+    .login-container, .map-container {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      padding: 20px;
+    }
+    .login-box {
+      background: white;
+      color: black;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      width: 350px;
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #2E86C1;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #1B4F72;
+    }
+    #map {
+      height: 70vh;
+      width: 100%;
+    }
+    .controls {
+      padding: 15px;
+      text-align: center;
+    }
+    .controls button {
+      width: auto;
+      margin: 5px;
+    }
+    #address {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 18px;
+      color: yellow;
+    }
+  </style>
+</head>
+<body>
+  <h1>BUS TRACKER</h1>
+
+  <!-- Login Section -->
+  <div class="login-container" id="loginSection" style="display: flex;">
+    <div class="login-box">
+      <input type="email" id="email" placeholder="Enter Email" required>
+      <input type="password" id="password" placeholder="Enter Password" required>
+      <button id="loginBtn">Login</button>
+      <button id="signupBtn">Create Account</button>
+    </div>
+  </div>
+
+  <!-- Map Section -->
+  <div class="map-container" id="mapSection">
+    <div id="map"></div>
+    <div class="controls">
+      <button id="startTracking">Start Tracking</button>
+      <button id="stopTracking">Stop Tracking</button>
+    </div>
+    <div id="address">Address: Not Available</div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+    const firebaseConfig = {
+    apiKey: "AIzaSyAk8hV0jAR3G0tCi1Fhw-I4Ln25yDRiGbg",
+    authDomain: "trackingapparchit.firebaseapp.com",
+    databaseURL: "https://trackingapparchit-default-rtdb.firebaseio.com",
+    projectId: "trackingapparchit",
+    storageBucket: "trackingapparchit.appspot.com",
+    messagingSenderId: "971227243188",
+    appId: "1:971227243188:web:6b104c1dc750e429a4ede1"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const loginSection = document.getElementById("loginSection");
+    const mapSection = document.getElementById("mapSection");
+
+    document.getElementById("signupBtn").addEventListener("click", () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      createUserWithEmailAndPassword(auth, email, password)
+        .then(() => alert("Account created successfully"))
+        .catch(err => alert(err.message));
+    });
+
+    document.getElementById("loginBtn").addEventListener("click", () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          loginSection.style.display = "none";
+          mapSection.style.display = "block";
+        })
+        .catch(err => alert(err.message));
+    });
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        loginSection.style.display = "none";
+        mapSection.style.display = "block";
+      } else {
+        loginSection.style.display = "flex";
+        mapSection.style.display = "none";
+      }
+    });
+
+    // Map Logic
+    let map, marker, watchId;
+    window.initMap = function () {
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 28.6139, lng: 77.2090 },
+        zoom: 14,
+      });
+    };
+
+    document.getElementById("startTracking").addEventListener("click", () => {
+      if (navigator.geolocation) {
+        watchId = navigator.geolocation.watchPosition((position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+
+          const pos = { lat, lng };
+          if (!marker) {
+            marker = new google.maps.Marker({
+              position: pos,
+              map: map,
+              title: "Bus Location",
+            });
+          } else {
+            marker.setPosition(pos);
+          }
+          map.setCenter(pos);
+
+          fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=AIzaSyDovBoCBHtf82YJxuvEzXXn2j181ErHSVQ`)
+            .then(response => response.json())
+            .then(data => {
+              if (data.results[0]) {
+                document.getElementById("address").innerText = "Address: " + data.results[0].formatted_address;
+              }
+            });
+        });
+      }
+    });
+
+    document.getElementById("stopTracking").addEventListener("click", () => {
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+      }
+    });
+  </script>
+
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDBy_ieIzByu1uYgW1FEaM5vXUW9QeYal4&callback=initMap"></script>
+</body>
+</html>
